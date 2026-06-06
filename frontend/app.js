@@ -49,11 +49,15 @@ const Dashboard = {
             <div class="charts-container">
                 <div class="card">
                     <h3 style="margin-bottom: 16px;">设备分类占比</h3>
-                    <canvas ref="pieChart" height="250"></canvas>
+                    <div class="chart-wrapper">
+                        <canvas ref="pieChart"></canvas>
+                    </div>
                 </div>
                 <div class="card">
                     <h3 style="margin-bottom: 16px;">巡检完成率趋势（近30天）</h3>
-                    <canvas ref="lineChart" height="250"></canvas>
+                    <div class="chart-wrapper">
+                        <canvas ref="lineChart"></canvas>
+                    </div>
                 </div>
             </div>
             
@@ -110,45 +114,64 @@ const Dashboard = {
         };
 
         const renderCharts = () => {
-            if (pieChart.value && stats.value.category_stats.length) {
+            if (pieChart.value) {
                 if (pieChartInstance) pieChartInstance.destroy();
                 const ctx = pieChart.value.getContext('2d');
                 pieChartInstance = new Chart(ctx, {
                     type: 'pie',
                     data: {
-                        labels: stats.value.category_stats.map(s => s.category),
+                        labels: stats.value.category_stats.length ? stats.value.category_stats.map(s => s.category) : ['暂无数据'],
                         datasets: [{
-                            data: stats.value.category_stats.map(s => s.count),
-                            backgroundColor: ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2']
+                            data: stats.value.category_stats.length ? stats.value.category_stats.map(s => s.count) : [1],
+                            backgroundColor: stats.value.category_stats.length ? ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2'] : ['#d9d9d9']
                         }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: true,
+                        aspectRatio: 1.5,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
                 });
             }
 
-            if (lineChart.value && stats.value.trend_data.length) {
+            if (lineChart.value) {
                 if (lineChartInstance) lineChartInstance.destroy();
                 const ctx = lineChart.value.getContext('2d');
                 lineChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: stats.value.trend_data.map(d => d.date),
+                        labels: stats.value.trend_data.length ? stats.value.trend_data.map(d => d.date) : ['暂无数据'],
                         datasets: [
                             {
                                 label: '巡检总数',
-                                data: stats.value.trend_data.map(d => d.total),
+                                data: stats.value.trend_data.length ? stats.value.trend_data.map(d => d.total) : [0],
                                 borderColor: '#1890ff',
-                                fill: false
+                                fill: false,
+                                tension: 0.1
                             },
                             {
                                 label: '正常完成',
-                                data: stats.value.trend_data.map(d => d.completed),
+                                data: stats.value.trend_data.length ? stats.value.trend_data.map(d => d.completed) : [0],
                                 borderColor: '#52c41a',
-                                fill: false
+                                fill: false,
+                                tension: 0.1
                             }
                         ]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: true,
+                        aspectRatio: 2,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        },
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
                 });
             }
         };
